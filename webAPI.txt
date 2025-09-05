@@ -1,0 +1,6 @@
+What is API?
+  ->Application Programming Interface
+  ->Used to communicate and transer data with multiple devices each other
+
+How it works?
+    Browser----Request--->API server---->Response----->Browser
