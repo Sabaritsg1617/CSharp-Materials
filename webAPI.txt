@@ -3,4 +3,33 @@ What is API?
   ->Used to communicate and transer data with multiple devices each other
 
 How it works?
-    Browser----Request--->API server---->Response----->Browser
+    Browser---->Request--->API server---->Response----->Browser
+
+
+Steps to create Api:
+  1)Create .Net Core Web API project
+  2)Configure the Cross Origin Resource Sharing(Cors)
+  3)Create Models
+  4)Install Entity FrameWork core
+      i)Entity FrameWork core
+      ii)Entity Framework core.Tools
+      iii)Entity Framework core.design
+      iv)Entity framework core.tools
+
+5) Configuration or DB connectivity
+6)Migration and update db
+7)Create Controller
+
+
+
+
+
+Cross-Origin Resource Sharing(CORS)
+       Share the resource between different languages
+       in Program.cs:
+              #Region Configure CORS
+                    builder.Services.AddCors(Options=>
+           {
+             options.AddPolicy("CustomPolicy",x=>x.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
+});
+              #ENDRegion
