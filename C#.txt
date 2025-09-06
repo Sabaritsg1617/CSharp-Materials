@@ -471,12 +471,403 @@ OOPS:
 
 
             🔹 What is a Contract in Programming?
-            👉 A contract simply means an agreement between two sides:
-                     One side (the interface/abstract class) says:
-                              “These methods/properties must exist.”
-                     Other side (the class that implements/inherits) promises:
-                              “I will provide the actual code for them.”
-            So, contract = rulebook / agreement of methods and properties.
+                   👉 A contract simply means an agreement between two sides:
+                            One side (the interface/abstract class) says:
+                                     “These methods/properties must exist.”
+                            Other side (the class that implements/inherits) promises:
+                                     “I will provide the actual code for them.”
+                   So, contract = rulebook / agreement of methods and properties.
+       
+                   --> Contract = an agreement that defines what methods/properties must exist in a class.
+
+
+   3) Inheritance:
+        --> Inheritance = creating a new class from an existing class, reusing its members.
+        --> Child class (derived) inherits properties, fields, and methods of the parent class (base).
+
+         🔹 Why Use Inheritance?
+              -->   Reuse existing code (avoid duplication).
+              -->   Add new features to existing behavior.
+              -->   Enable Polymorphism (runtime flexibility).
+
+
+| Concept               | C# Keyword        | VB.NET Keyword             |
+| --------------------- | ----------------- | -------------------------- |
+| Inheritance (extends) | `:`               | `Inherits`                 |
+| Base class            | `base`            | `MyBase`                   |
+| Virtual method        | `virtual`         | `Overridable`              |
+| Override method       | `override`        | `Overrides`                |
+| Prevent inheritance   | `sealed`          | `NotInheritable`           |
+| Prevent overriding    | `sealed override` | `NotOverridable Overrides` |
+| Abstract method       | `abstract`        | `MustOverride`             |
+
+
+EX:
+       // Base class (Parent)
+       public class Animal
+       {
+           public void Eat() => Console.WriteLine("Animal is eating");
+       
+           public virtual void Speak() => Console.WriteLine("Animal makes a sound");
+       }
+       
+       // Derived class (Child)
+       public class Dog : Animal
+       {
+           public void Run() => Console.WriteLine("Dog is running");
+       
+           public override void Speak() => Console.WriteLine("Dog barks");
+       }
+       
+       // Derived class (Child)
+       public class Cat : Animal
+       {
+           public override void Speak() => Console.WriteLine("Cat meows");
+       }
+
+
+🔹 Types of Inheritance in .NET
+     Single Inheritance
+        One base class → one derived class.
+        ✅ Supported.
+
+               Vehicle
+                 │
+                 ▼
+                Car
+
+            public class Vehicle
+              {
+                  public void Drive() => Console.WriteLine("Driving...");
+              }
+              
+              public class Car : Vehicle
+              {
+                  public void Honk() => Console.WriteLine("Car Honks!");
+              }
+
+     
+     Multilevel Inheritance
+        A base class → derived class → another derived class.
+        ✅ Supported.
+                        
+                        Animal
+                           │
+                           ▼
+                         Mammal
+                           │
+                           ▼
+                          Dog
+
+
+          public class Animal
+              {
+                  public void Eat() => Console.WriteLine("Eating...");
+              }
+              
+              public class Mammal : Animal
+              {
+                  public void Walk() => Console.WriteLine("Walking...");
+              }
+              
+              public class Dog : Mammal
+              {
+                  public void Bark() => Console.WriteLine("Barking...");
+              }
+
+     
+     Hierarchical Inheritance
+        One base class → multiple derived classes.
+        ✅ Supported.
+                 Shape
+                /   |   \
+             Circle Rect  Triangle
+
+            public class Shape
+              {
+                  public virtual void Draw() => Console.WriteLine("Drawing Shape...");
+              }
+              
+              public class Circle : Shape
+              {
+                  public override void Draw() => Console.WriteLine("Drawing Circle");
+              }
+              
+              public class Rectangle : Shape
+              {
+                  public override void Draw() => Console.WriteLine("Drawing Rectangle");
+              }
+
+     
+     Multiple Inheritance (two parents → one child)
+        👉 A class inherits from more than one base class.
+        ❌ Not supported with classes (to avoid diamond problem).
+        ✅ Achieved using Interfaces.
+
+                    Car       Airplane
+                        \       /
+                         \     /
+                        FlyingCar
+
+
+             public interface ICar
+               {
+                   void Drive();
+               }
+               
+               public interface IAirplane
+               {
+                   void Fly();
+               }
+               
+               public class FlyingCar : ICar, IAirplane
+               {
+                   public void Drive() => Console.WriteLine("Driving...");
+                   public void Fly() => Console.WriteLine("Flying...");
+               }
+
+
+        5. Hybrid Inheritance (Combination)
+             👉 Combination of more than one type (hierarchical + multiple).
+              ❌ Not supported with classes in C#.
+               ✅ Can be achieved with interfaces.
+
+
+              🔹 Interview One-Liners
+                      Single: One parent → one child.
+                      Multilevel: Parent → child → grandchild.
+                      Hierarchical: One parent → many children.
+                      Multiple: One child → many parents (not supported with classes).
+                      Hybrid: Combination of multiple types (possible only via interfaces in C#).
+
+
+
+
+            4)Polymorphism
+                  👉 Polymorphism = “Many Forms.”
+                      Same method name → different behaviors depending on the object.
+                      It allows us to perform a single action in different ways.
+
+
+                🔹 Types of Polymorphism in .NET
+                   --> Compile-time Polymorphism (Static)
+                         Achieved using Method Overloading and Operator Overloading.
+                         Decided at compile time.
+                            public class Calculator
+                                 {
+                                     // Method Overloading
+                                     public int Add(int a, int b) => a + b;
+                                     public double Add(double a, double b) => a + b;
+                                 }
+                                 
+                                 class Program
+                                 {
+                                     static void Main()
+                                     {
+                                         Calculator c = new Calculator();
+                                         Console.WriteLine(c.Add(5, 10));       // Calls int Add
+                                         Console.WriteLine(c.Add(5.5, 3.3));    // Calls double Add
+                                     }
+                                 }
+
+
+                    -->  Runtime Polymorphism (Dynamic)
+                           Achieved using Method Overriding (with virtual, override, abstract).
+                           Decided at runtime.
+                              public class Animal
+                                 {
+                                     public virtual void Speak()
+                                     {
+                                         Console.WriteLine("Animal makes a sound");
+                                     }
+                                 }
+                                 
+                                 public class Dog : Animal
+                                 {
+                                     public override void Speak()
+                                     {
+                                         Console.WriteLine("Dog barks");
+                                     }
+                                 }
+                                 
+                                 public class Cat : Animal
+                                 {
+                                     public override void Speak()
+                                     {
+                                         Console.WriteLine("Cat meows");
+                                     }
+                                 }
+                                 
+                                 class Program
+                                 {
+                                     static void Main()
+                                     {
+                                         Animal a;
+                                 
+                                         a = new Dog();
+                                         a.Speak();   // Output: Dog barks
+                                 
+                                         a = new Cat();
+                                         a.Speak();   // Output: Cat meows
+                                     }
+                                 }
+
+
+                        🔹 Interview One-Liners
+                                Polymorphism = same method name but different behaviors.
+                          Two types:
+                                Compile-time → Method Overloading, Operator Overloading.
+                                Runtime → Method Overriding (virtual, override).
+                          Enables flexibility and reusability.
+
+
+
+
+
+
+🔹 Differences Between OOP Concepts
+ | Concept     | What it is                                                           | How it is done in C#                                                | Example                                                                                       
+| ------------ | ------------------------------------------------------------------   | --------------------------------------------------------------------| ----------------------------------------------------------
+| Encapsulation| Hiding **data** and controlling access                               | Using **access modifiers** (`private`, `public`, `protected`, etc.) | Private `balance` field in `BankAccount` accessible only                                                                                                                                                                       via `Deposit()`/`Withdraw()` methods                    |
+| Abstraction  | Hiding **implementation details**, showing only essentials           | Using **abstract classes** and **interfaces**                       | `IShape.GetArea()` (interface) tells *what* to do,                                                                                                                                                                               classes like `Circle` implement *how*                 |
+| Inheritance  | Reusing parent class features in child class (**is-a** relationship) | Using `:` in C# (`Inherits` in VB.NET)                              | `Dog : Animal` (Dog is an Animal)                         |                                                 
+| Polymorphism | Same method name → different behaviors                               | **Compile-time**: Overloading, **Runtime**: Overriding              | `Speak()` behaves differently in `Dog`, `Cat`             |    
+
+
+
+
+🔹 Quick One-Liners
+      Encapsulation → Hides Data → Access Modifiers.
+      Abstraction → Hides Implementation → Interfaces/Abstract Classes.
+      Inheritance → Reuses Code → is-a relationship.
+      Polymorphism → Same method, different behaviors → Overloading/Overriding.
+
+
+🔹 Common Interview Questions & Answers
+     1. What is Encapsulation?
+             Answer: Encapsulation is the process of hiding data inside a class and exposing it through controlled access (methods/properties). In .NET, it is implemented using access modifiers like private, public, 
+             protected.
+             👉 Example: private balance field in a BankAccount class accessed only via Deposit() and Withdraw() methods.
+     
+     2. What is Abstraction?
+            Answer: Abstraction is hiding implementation details and exposing only the essential functionality. In .NET, it is achieved using abstract classes and interfaces.
+            👉 Example: IShape defines GetArea() but does not say how. Circle and Rectangle provide their own implementation.
+     
+     3. What is Inheritance?
+            Answer: Inheritance allows one class (child) to acquire the fields and methods of another class (parent). This creates an is-a relationship. In .NET, inheritance is implemented using : (C#) or Inherits 
+            (VB.NET).
+           👉 Example: Dog : Animal → Dog inherits methods from Animal.
+     
+     4. What is Polymorphism?
+             Answer: Polymorphism means “many forms.” It allows the same method to behave differently in different contexts.
+             Compile-time polymorphism: Achieved via method overloading.
+             Runtime polymorphism: Achieved via method overriding using virtual and override.
+             👉 Example: Speak() behaves differently for Dog (barks) and Cat (meows).
+     
+     5. Difference Between Abstraction and Encapsulation?
+           Answer:
+               Abstraction → Hides implementation (focus on what to do).
+               Encapsulation → Hides data (focus on how to protect data).
+     
+     6. Why multiple inheritance is not supported in C#?
+           Answer: To avoid the diamond problem (ambiguity when two base classes have same method). Instead, multiple inheritance is achieved using interfaces.
+     
+     7. Difference between Compile-time and Runtime Polymorphism?
+           Answer:
+                 Compile-time Polymorphism → Method Overloading (resolved at compile time).
+                 Runtime Polymorphism → Method Overriding (resolved at runtime).
+
+
+
+ 🔹 Other Important OOP Concepts in .NET
+             1. Class and Object
+             Class = blueprint/template.
+             Object = real instance of a class.
+             👉 Example: Car is a class, myCar is an object of Car.
+             
+             Interview Question:
+             Q: Difference between class and object?
+             A: Class is a definition, object is an instance created from the class.
+             
+             2. Constructor & Destructor
+             Constructor → Special method used to initialize an object (same name as class).
+             Destructor → Used to clean up resources (in C#, rarely used because Garbage Collector handles memory).
+             
+             Interview Question:
+             Q: Can we overload constructors?
+             A: Yes (called constructor overloading).
+             
+             3. Static vs Instance Members
+             Static → Belongs to the class, shared by all objects.
+             Instance → Belongs to a particular object.
+             
+             Interview Question:
+             Q: Difference between static and instance members?
+             A: Static is shared, instance is per object.
+             
+             4. Sealed Class & Method
+             sealed class → cannot be inherited.
+             sealed method → cannot be overridden further.
+             
+             Interview Question:
+             Q: Why use sealed?
+             A: To prevent inheritance and improve security/performance.
+             
+             5. Abstract Class vs Interface
+             👉 Already covered, but very common interview question.
+             
+             6. Virtual, Override, New Keywords
+             virtual → method in base class can be overridden.
+             override → provides new implementation in derived class.
+             new → hides base class method (not polymorphism).
+             
+             Interview Question:
+             Q: Difference between override and new keyword?
+             A: override replaces base method (polymorphism), new hides base method (no polymorphism).
+             
+             7. Overloading vs Overriding
+             Overloading → same method name, different parameter list. (Compile-time polymorphism).
+             Overriding → same method name, same signature, but in derived class. (Runtime polymorphism).
+             
+             Interview Question:
+             Q: Can we overload static methods?
+             A: Yes.
+             
+             Q: Can we override static methods?
+             A: No.
+             
+             8. Association, Aggregation, Composition
+             Association → simple relationship (Teacher teaches Student).
+             Aggregation → “Has-a” weak relationship (Library has Books, books can exist without library).
+             Composition → “Has-a” strong relationship (Car has Engine, engine cannot exist without car).
+             
+             Interview Question:
+             Q: Difference between Aggregation and Composition?
+             A: Aggregation = weak dependency, Composition = strong dependency.
+             
+             9. Access Modifiers (already covered)
+             Very common interview question.
+             Public, Private, Protected, Internal, Protected Internal, Private Protected.
+             
+             10. Interfaces and Multiple Inheritance
+             Since multiple inheritance is not supported in C#, interfaces are often used.
+             Very common question: Why use interfaces?
+
+🔹 Common Advanced OOP Interview Questions
+      1)What is the difference between Abstraction and Encapsulation?
+      2)Why multiple inheritance is not supported in C#?
+      3)What is the difference between Interface and Abstract Class?
+      4)Can constructors be inherited? (No)
+      5)Can we create object of abstract class? (No, but we can use reference of it).
+      6)What is method hiding (new keyword)?
+      7)Difference between early binding (compile-time polymorphism) and late binding (runtime polymorphism)?
+      8)What is the difference between Association, Aggregation, and Composition?
+      9)Can static methods be overridden? (No, only hidden).
+      10)What is difference between base and this keyword?
+
+
+
+
 
 
 
