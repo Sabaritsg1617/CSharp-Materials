@@ -1,1 +1,123 @@
+   1)What is an Access Modifier?
+      Access modifiers are keywords in C# that define the scope and visibility of classes, methods, variables, and other members. They control who can access them in your project
+
+   Types:
+       1. public
+           --> No restriction.
+           --> Accessible from anywhere (same class, other classes, other assemblies).
+
+          EX:
+                    public class Student
+                     {
+                        public string Name; // Accessible from anywhere
+                     }
+
+      2. private
+         --> Most restrictive.
+         --> Accessible only inside the same class.
+         --> Default for class members (fields, methods).
+
+              EX:
+                 public class Student
+                     {
+                      private int age; // Only accessible inside Student class
+                     }
+
+      3.protected
+           --> Accessible in the same class and in derived (child) classes.
+           --> Not accessible outside if there is no inheritance.
+
+              EX:
+                  public class Person
+                    {
+                    protected string Address;
+                    }
+
+                   public class Student : Person
+                  {
+                     public void ShowAddress()
+                        {
+                         Console.WriteLine(Address); // OK, inherited class can access
+                        }
+                   }
+
+        4. internal
+             --> Accessible within the same assembly/project.
+             --> Not accessible outside the assembly.
+               EX:
+                   internal class Teacher
+                         {
+                           internal void Teach()
+                               {
+                               Console.WriteLine("Teaching...");
+                               }
+                          }
+
+        5.protected internal
+                --> Combination of protected + internal.
+                --> Accessible from child classes OR from the same assembly.
+              EX: 
+               public class Person
+                  {
+                    protected internal string Email;
+                  }
+
+      6. private protected (C# 7.2 and later)
+             --> Combination of private + protected.
+             --> Accessible only in the same assembly and only in derived classes.
+             --> More restrictive than protected internal.
+            EX:
+              public class Person
+              {
+                private protected int Age;
+              }
+
+
+
+2.What is an Assembly in .NET?
+          --> An Assembly is the building block of .NET applications.
+          --> It is a compiled unit that the .NET runtime (CLR – Common Language Runtime) can execute.
+
+     Assemblies contain:
+          --> Code (IL – Intermediate Language)
+          --> Metadata (information about classes, methods, properties, etc.)
+          --> Resources (images, strings, etc.)
+        👉 In simple terms: An Assembly = Compiled Output of Your Project.
+
+
+      🔹 Types of Assemblies
+             1)Private Assembly
+               --> Used by only one application.
+              --> Stored in the application’s folder.
+                Example: MyApp.dll
+
+            2)Shared Assembly
+              --> Can be used by multiple applications.
+              --> Stored in the Global Assembly Cache (GAC).
+              --> Must have a Strong Name (unique identity).
+
+          3)Satellite Assembly
+             --> Contains only resources (like localized strings for different languages).
+             --> Used for globalization/localization.
+
+   🔹 Assembly File Types
+            --> .exe → Executable assembly (application you can run).
+            --> .dll → Library assembly (cannot run directly, but used by other apps).
+
+  🔹 Inside an Assembly
+            An assembly has two main parts:
+                 --> Manifest – Metadata about the assembly (version, culture, strong name).
+                 --> IL Code – Compiled intermediate code (C# → IL → executed by CLR).
+                       (You can inspect an assembly using the tool ILDASM (IL Disassembler).)
+
+  🔹 Real-world Analogy
+            Think of Assembly like a Book:
+                 --> The chapters (code/IL) → Actual content.
+                 --> The Index (metadata/manifest) → Tells what’s inside and where.
+                 --> The Cover (filename: DLL/EXE) → How others identify it.
+                         So, whenever you build a C# project, the final book you get is the assembly.
+
+
+
+
 
