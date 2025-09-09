@@ -1083,7 +1083,9 @@ Q4: What is ActionResult<T> and why was it introduced?
 
             ✅ When the using block ends, Dispose() is called automatically, even if an exception happens inside.
 
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
+View Keywords:
   3. Why this matters for Html.BeginForm()
      Html.BeginForm() returns an object of type MvcForm, which implements IDisposable.
      @using (Html.BeginForm())
@@ -1203,7 +1205,141 @@ Label → you pass the field name as a string:
 
 LabelFor → strongly typed:
 @Html.LabelFor(m => m.Name)
-(Safer — if you rename Name, the compiler warns yo
+(Safer — if you rename Name, the compiler warns you
+
+
+🔹 What it does @Html.EditorFor()
+    @Html.EditorFor() generates the appropriate input field (<input>, <textarea>, etc.) for a given model property, based on:
+                The property’s data type
+                Any data annotations you apply
+                It’s part of ASP.NET MVC’s templated helpers (they pick the right editor UI automatically).
+
+Model
+   public class Student
+{
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; }
+}
+
+View
+  @model Student
+
+<div class="form-group">
+    @Html.LabelFor(m => m.Email, new { @class = "control-label col-md-2" })
+    <div class="col-md-10">
+        @Html.EditorFor(m => m.Email, new { htmlAttributes = new { @class = "form-control" } })
+        @Html.ValidationMessageFor(m => m.Email, "", new { @class = "text-danger" })
+    </div>
+</div>
+
+
+🔹 What gets rendered
+       <div class="form-group">
+    <label class="control-label col-md-2" for="Email">Email</label>
+    <div class="col-md-10">
+        <input class="form-control text-box single-line" 
+               data-val="true" 
+               data-val-email="The Email field is not a valid e-mail address." 
+               data-val-required="The Email field is required." 
+               id="Email" 
+               name="Email" 
+               type="email" 
+               value="" />
+        <span class="text-danger field-validation-valid" data-valmsg-for="Email" data-valmsg-replace="true"></span>
+    </div>
+</div>
+
+🔹 Difference from TextBoxFor
+
+TextBoxFor → Always renders <input type="text"> unless you specify otherwise.
+
+@Html.TextBoxFor(m => m.Email)
+
+→ <input type="text" ... />
+EditorFor → Smarter, looks at metadata/annotations and picks the right input.
+[EmailAddress] → <input type="email">
+[DataType(DataType.Password)] → <input type="password">
+[DataType(DataType.MultilineText)] → <textarea>
+
+
+🔹 Custom HTML attributes
+To add classes, placeholders, etc., you must nest inside htmlAttributes:
+@Html.EditorFor(m => m.Email, new { htmlAttributes = new { @class = "form-control", placeholder = "Enter email" } })
+
+
+@Html.EditorFor is smart, but its behavior depends on the property type in your model. Let’s break it down by checkbox, toggle (custom), and list (dropdown/radio/checkbox list).
+
+🔹 1. Checkbox
+        If your model property is a bool:
+            public class Student
+            {
+                public bool IsActive { get; set; }
+            }
+            
+        Then:
+        @Html.EditorFor(m => m.IsActive)
+        
+        renders as:
+        
+              <input checked="checked" class="check-box" data-val="true" 
+                     data-val-required="The IsActive field is required." 
+                     id="IsActive" name="IsActive" type="checkbox" value="true" />
+              <input name="IsActive" type="hidden" value="false" />
+        
+        ✅ Explanation:
+              The hidden input ensures a value (false) is sent when the checkbox is unchecked.
+              The checkbox itself sends true when checked.
+              If you want more control, use:
+              @Html.CheckBoxFor(m => m.IsActive, new { @class = "form-check-input" })
+
+🔹 2. Toggle (custom UI switch)
+
+MVC doesn’t have a built-in toggle switch, but you can style a checkbox with Bootstrap or your own CSS.
+Example (Bootstrap 5 switch):
+
+      <div class="form-check form-switch">
+          @Html.CheckBoxFor(m => m.IsActive, new { @class = "form-check-input" })
+          @Html.LabelFor(m => m.IsActive, new { @class = "form-check-label" })
+      </div>
+
+Renders like a toggle switch (instead of a plain checkbox).
+
+🔹 3. Lists (DropDown, Radio, CheckBox List)
+
+ASP.NET MVC doesn’t automatically guess these — you have to tell it using DropDownListFor, RadioButtonFor, or ListBoxFor.
+(a) DropDownList
+Model:
+      public int DepartmentId { get; set; }
+      public IEnumerable<SelectListItem> Departments { get; set; }
+
+View:
+      @Html.DropDownListFor(m => m.DepartmentId, Model.Departments, "Select Department", new { @class = "form-control" })
+
+
+(b) Radio Button List
+@foreach (var dept in Model.Departments)
+{
+    <div class="form-check">
+        @Html.RadioButtonFor(m => m.DepartmentId, dept.Value, new { @class = "form-check-input" })
+        <label class="form-check-label">@dept.Text</label>
+    </div>
+}
+
+(c) CheckBox List
+
+If you want multiple selections:
+
+@foreach (var dept in Model.Departments)
+{
+    <div class="form-check">
+        @Html.CheckBox("SelectedDepartments", false, new { value = dept.Value, @class = "form-check-input" })
+        <label class="form-check-label">@dept.Text</label>
+    </div>
+}
+
+
+(Here SelectedDepartments could be a List<int> in your model).
 
                                              
 
