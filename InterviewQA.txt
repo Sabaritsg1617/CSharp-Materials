@@ -1,1 +1,401 @@
+  Q1: IEnumerable vs IQueryable vs List 
+    1. IEnumerable
+          Namespace: System.Collections
+          Represents a forward-only cursor of a collection.
+          Works with in-memory objects (LINQ-to-Objects).
+          Deferred execution: query executes when you loop (foreach).
+          Can’t filter/optimize at DB level → pulls all data into memory.
+
+              IEnumerable<int> numbers = new List<int> { 1, 2, 3, 4, 5 };
+              var result = numbers.Where(x => x > 2);  // Filtering happens in memory
+
+    2. IQueryable
+          Namespace: System.Linq
+          Extends IEnumerable.
+          Builds an expression tree that can be translated (SQL, NoSQL, etc.).
+          Used in Entity Framework / LINQ to SQL.
+          Query executed on data source (DB), not memory → better performance.
+
+                IQueryable<Employee> employees = context.Employees;
+                var result = employees.Where(e => e.Salary > 50000);  // Translated to SQL
+
+  3. List<T>
+        A concrete collection type (implements IEnumerable<T>).
+        Stores items fully in memory.
+        Supports indexing, adding, removing.
+        Best for scenarios where you need random access or manipulation.
+
+                List<string> names = new List<string> { "A", "B", "C" };
+                names.Add("D");
+                Console.WriteLine(names[2]); // "C"
+
+        
+        | Feature          | IEnumerable     | IQueryable      | List<T>             |
+        | ---------------- | --------------- | --------------- | ------------------- |
+        | **Executes**     | In memory       | On data source  | In memory           |
+        | **Deferred**     | Yes             | Yes             | No                  |
+        | **LINQ Support** | LINQ-to-Objects | LINQ-to-SQL/EF  | LINQ-to-Objects     |
+        | **Performance**  | Loads all data  | Optimized query | All data in memory  |
+        | **Usage**        | Iteration only  | Complex queries | Random access, CRUD |
+        
+          Deferred Execution    
+            Deferred execution means:
+            👉 The query is not executed at the moment you define it.
+            👉 Instead, execution happens only when you actually iterate (like with foreach, .ToList(), .Count(), etc.).
+        
+            var numbers = new List<int> { 1, 2, 3, 4, 5 };
+                
+                // Query defined, but NOT executed yet
+                var query = numbers.Where(x => x > 2);
+                
+                // Add new element after defining query
+                numbers.Add(6);
+                
+                // Execution happens HERE when we enumerate
+                foreach (var n in query)
+                {
+                    Console.WriteLine(n);
+                }
+        
+        
+        🔹 Immediate Execution
+              If you want results right away (snapshot), you force execution using:
+              .ToList()
+              .ToArray()
+              .Count()
+              .First() etc.
+        
+                var result = numbers.Where(x => x > 2).ToList();  // executes immediately
+              numbers.Add(7);
+              
+              foreach (var n in result)
+              {
+                  Console.WriteLine(n);
+              }
+        
+        
+        ✅ Summary
+            Deferred execution → Query runs when you actually iterate.
+            Immediate execution → Query runs right away and stores results.
+            Benefit → Saves resources, allows working with updated data.
+            Risk → If data changes later, results might differ from what you expected.
+
+
+
+Q2: How Garbage Collection works in CLR?
+     🔹 What is Garbage Collection?
+          Automatic memory management in .NET.
+          Frees up memory by removing objects that are no longer reachable in your code.
+          Saves developers from manual memory management like in C/C++ (malloc / free).
+
+     🔹 How It Works (Step by Step)
+           1)Allocation
+            When you create objects (new), they go into the managed heap.
+              var obj = new Customer();  // Stored in heap
+
+          2)Mark
+              GC pauses execution and finds all reachable objects (those still referenced by your program).
+              Everything else is considered garbage.
+
+         3)Sweep
+              GC removes the unreachable objects and reclaims their memory.
+
+        4)Compact
+              To avoid fragmentation, GC compacts memory → moves objects together, updates references.
+
+      🔹 Generations in GC
+          GC uses generational collection to optimize performance.
+          Gen 0 → Newly allocated, short-lived objects (e.g., local variables, temp strings).
+          Gen 1 → Surviving objects from Gen 0.
+          Gen 2 → Long-lived objects (e.g., static data, caches).
+          👉 GC mostly collects Gen 0, because most objects die young (like temp variables). This makes GC very efficient.
+
+   🔹 Finalization & IDisposable
+          If an object has a finalizer (~Destructor), GC calls it before freeing memory.
+          For unmanaged resources (DB connections, file handles), use:
+          IDisposable + using block → ensures cleanup before GC runs.
+
+       using(var file = new StreamWriter("log.txt"))
+          {
+              file.WriteLine("Hello");
+          } // file.Dispose() called automatically
+
+   🔹 When Does GC Run?
+        When system runs low on memory.
+        When Gen 0 heap is full.
+        Can be forced manually (not recommended):
+              GC.Collect();  // forces garbage collection
+
+        Garbage Collection Generations Diagram
+            ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
+            │   Gen 0     │      │   Gen 1     │      │   Gen 2     │
+            │ (youngest)  │      │ (mid-life)  │      │ (long-life) │
+            │-------------│      │-------------│      │-------------│
+            │ temp objs   │      │ survived    │      │ survived    │
+            │ short-lived │────▶ │ from Gen 0  │────▶│ from Gen 1  │
+            │ (strings,   │      │ (medium     │      │ (static,    │
+            │ local vars) │      │ lifetime)   │      │ caches,     │
+            │-------------│      │-------------│      │ sessions)   │
+            │ collected   │      │ collected   │      │ collected   │
+            │ most often  │      │ less often  │      │ least often │
+            └─────────────┘      └─────────────┘      └─────────────┘
+
+       👉 Process:
+              New objects → Gen 0.
+              If they survive collection → promoted to Gen 1.
+              If they survive again → promoted to Gen 2.
+              Gen 2 is collected less frequently (expensive).
+
+               🔹 Example 1: GC Collecting Unused Objects
+                       using System;
+                        class Program
+                        {
+                            class Test
+                            {
+                                ~Test()  // Finalizer (Destructor)
+                                {
+                                    Console.WriteLine("Test object finalized (collected by GC).");
+                                }
+                            }
+                        
+                            static void Main()
+                            {
+                                CreateObjects();
+                        
+                                // Force garbage collection (not recommended in real apps, only demo)
+                                GC.Collect();
+                                GC.WaitForPendingFinalizers();
+                        
+                                Console.WriteLine("End of Main()");
+                            }
+                        
+                            static void CreateObjects()
+                            {
+                                Test t1 = new Test();
+                                Test t2 = new Test();
+                                Test t3 = new Test();
+                        
+                                // After this method ends, t1, t2, t3 go out of scope
+                                // They become eligible for GC
+                            }
+                        }
+          
+               🔹 Example 2: Generation Info
+                      using System;
+                    class Program
+                    {
+                        class Demo { }
+                    
+                        static void Main()
+                        {
+                            var obj = new Demo();
+                            Console.WriteLine("Generation: " + GC.GetGeneration(obj));
+                    
+                            GC.Collect();  // Force GC
+                            GC.WaitForPendingFinalizers();
+                    
+                            Console.WriteLine("Generation after GC: " + GC.GetGeneration(obj));
+                        }
+                    }
+          
+                     output:
+                          Generation: 0
+                          Generation after GC: 1
+          
+               🔹 Example 3: Using IDisposable (Best Practice for Unmanaged Resources)
+                      using System;
+                      using System.IO;
+                      
+                      class Program
+                      {
+                          static void Main()
+                          {
+                              using (StreamWriter writer = new StreamWriter("test.txt"))
+                              {
+                                  writer.WriteLine("Hello, world!");
+                              }  // Dispose() is called automatically here
+                          }
+                      }
+          
+                     👉 Even though GC will eventually clean up StreamWriter, unmanaged resources like file handles should be explicitly released using Dispose() or using.
+          
+              ✅ Summary of Examples:
+                    Finalizer demo → shows GC cleanup.
+                    Generation demo → shows how objects get promoted (Gen 0 → Gen 1).
+                    IDisposable demo → shows best practice for unmanaged resources.
+
+Q3: Equals() vs == in C#?
+           1. == Operator
+                  By default:
+                  Value types → compares values.
+                  Reference types → compares references (are they the same object in memory?).
+                  Can be overloaded by a class (e.g., string).
+
+           int a = 5, b = 5;
+          Console.WriteLine(a == b);  // True (compares values)
+          object o1 = new object();
+          object o2 = new object();
+          Console.WriteLine(o1 == o2); // False (different references)
+
+      2. Equals() Method
+            Defined in System.Object.
+            Can be overridden to check object content equality.
+            Default: behaves like == for reference types (compares references).
+
+         string s1 = "hello";
+          string s2 = new string("hello".ToCharArray());
+          Console.WriteLine(s1 == s2);      // True (string overrides ==)
+          Console.WriteLine(s1.Equals(s2)); // True (string overrides Equals)
+        | Aspect                        | `==` Operator                     | `Equals()` Method               |
+        | ----------------------------- | --------------------------------- | ------------------------------- |
+        | **Default (Value types)**     | Compares values                   | Compares values                 |
+        | **Default (Reference types)** | Compares references               | Compares references             |
+        | **Override?**                 | Yes (operator overloading)        | Yes (override Equals)           |
+        | **String behavior**           | Content comparison (special case) | Content comparison (overridden) |
+
+
+
+                🔹 Rule of Thumb
+                
+                Value types (int, bool, struct)
+                👉 Both == and Equals() compare actual values.
+                
+                Reference types (class, object)
+                👉 == compares references (memory addresses).
+                👉 Equals() compares references too, unless overridden.
+                
+                String (special case)
+                👉 Both compare contents, because string overrides them.
+
+
+     🔹 Example 1: Value Types
+                 int a = 5, b = 5;
+                Console.WriteLine(a == b);      // True (values equal)
+                Console.WriteLine(a.Equals(b)); // True (values equal)
+
+    🔹 Example 2: Reference Types (Custom Class)
+              class Person
+              {
+                  public string Name { get; set; }
+              }
+              
+              Person p1 = new Person { Name = "Alice" };
+              Person p2 = new Person { Name = "Alice" };
+              
+              Console.WriteLine(p1 == p2);      // False (different references in memory)
+              Console.WriteLine(p1.Equals(p2)); // False (default Equals() checks reference too)
+
+    🔹 Example 3: Overriding Equals()
+           class Person
+              {
+                  public string Name { get; set; }
+              
+                  public override bool Equals(object obj)
+                  {
+                      if (obj is Person other)
+                          return this.Name == other.Name; // Compare content
+                      return false;
+                  }
+              
+                  public override int GetHashCode() => Name.GetHashCode();
+              }
+              
+              Person p1 = new Person { Name = "Alice" };
+              Person p2 = new Person { Name = "Alice" };
+              
+              Console.WriteLine(p1 == p2);      // False (still different references)
+              Console.WriteLine(p1.Equals(p2)); // True  (content compared)
+
+      🔹 Example 4: Strings (Special Case)
+
+             string s1 = "hello";
+              string s2 = new string("hello".ToCharArray());
+              
+              Console.WriteLine(s1 == s2);      // True (string overrides ==)
+              Console.WriteLine(s1.Equals(s2)); // True (string overrides Equals)
+
+            | Type                          | `==`                                 | `Equals()`                              |
+            | ----------------------------- | ------------------------------------ | --------------------------------------- |
+            | **Value types**               | Compares values                      | Compares values                         |
+            | **Reference types (default)** | Compares references (memory address) | Compares references (unless overridden) |
+            | **String**                    | Compares content (overridden)        | Compares content (overridden)           |
+
+        👉 A good way to remember:
+              Use == for basic value comparison.
+              Use Equals() (or override it) for object content comparison.
+
+
+
+  🔹 Q4: async/await in C#
+ What is async/await?
+      async and await are keywords used for asynchronous programming in C#.
+      They allow you to run non-blocking code (e.g., I/O operations, API calls, DB queries) without freezing the main thread.
+
+🔹 How it Works
+      async → Marks a method as asynchronous (it can use await inside).
+      await → Pauses the method until the awaited task finishes, but does not block the thread.
+      Control returns to the caller, thread is freed to do other work.
+
+🔹 Example: Without async/await (Blocking)
+         public string GetData()
+          {
+              Thread.Sleep(3000); // Simulate long operation
+              return "Data received";
+          }
+          Console.WriteLine(GetData()); // App is frozen for 3s
+
+         👉 Blocks the thread → app becomes unresponsive.
+
+ 🔹 Example: With async/await (Non-Blocking)
+            public async Task<string> GetDataAsync()
+                {
+                    await Task.Delay(3000); // Non-blocking delay
+                    return "Data received";
+                }
+                
+                Console.WriteLine("Fetching...");
+                var data = await GetDataAsync(); // Free thread while waiting
+                Console.WriteLine(data);
+
+          Output: 
+                Fetching...
+                (Data received after 3s without freezing)
+
+        👉 Thread is free → app stays responsive.
+
+🔹 Benefits of async/await
+      Improves scalability: More requests handled without blocking threads.
+      Keeps UI responsive (WinForms/WPF/Blazor apps).
+      Cleaner syntax compared to callbacks or ContinueWith.
+
+ 🔹 Benefits of async/await
+        Improves scalability: More requests handled without blocking threads.
+        Keeps UI responsive (WinForms/WPF/Blazor apps).
+        Cleaner syntax compared to callbacks or ContinueWith.
+
+   🔹 Real-life Usage
+          Calling Web APIs:
+               var response = await httpClient.GetAsync("https://api.example.com/data");
+          Reading/Writing files:
+               await File.WriteAllTextAsync("file.txt", "Hello");
+         Database queries in EF Core:
+               var users = await context.Users.ToListAsync();
+
+    ✅ Summary:
+        async marks a method as asynchronous.
+        await releases the thread until the task is done.
+        Improves responsiveness and scalability, especially for I/O-bound operations.
+
+
+
+
+
+
+
+
+
+
+
+
+          
 
